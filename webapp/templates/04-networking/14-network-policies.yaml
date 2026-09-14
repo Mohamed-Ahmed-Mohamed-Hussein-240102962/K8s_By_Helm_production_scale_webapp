@@ -2,18 +2,17 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: isolate-mysql-database
-  namespace: production
 spec:
   podSelector:
     matchLabels:
-      app: mysql  
+      app: {{ .Values.mysql.name }}
   policyTypes:
   - Ingress
   ingress:
   - from:
     - podSelector:
         matchLabels:
-          app: laravel-backend
+          app: {{ .Values.backend.name }}
     ports:
     - protocol: TCP
       port: 3306
@@ -22,11 +21,10 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: isolate-laravel-backend
-  namespace: production
 spec:
   podSelector:
     matchLabels:
-      app: laravel-backend
+      app: {{ .Values.backend.name }}
   policyTypes:
   - Ingress
   - Egress
@@ -34,7 +32,7 @@ spec:
   - from:
     - podSelector:
         matchLabels:
-          app: nginx-frontend
+          app: {{ .Values.frontend.name }}
     ports:
     - protocol: TCP
       port: 9000
@@ -42,11 +40,10 @@ spec:
   - to:
     - podSelector:
         matchLabels:
-          app: mysql
+          app: {{ .Values.mysql.name }}
     ports:
     - protocol: TCP
       port: 3306
-      
   - to:
     - namespaceSelector:
         matchLabels:
