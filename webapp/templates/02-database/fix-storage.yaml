@@ -1,38 +1,38 @@
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: local-pv-0
+  name: {{ .Values.mysql.pv.namePrefix }}-0
 spec:
   capacity:
-    storage: 2Gi
+    storage: {{ .Values.mysql.persistence.size }}
   accessModes:
   - ReadWriteOnce
-  storageClassName: standard
+  storageClassName: {{ .Values.storageClass.name }}
   hostPath:
-    path: /mnt/data/mysql-0
+    path: {{ .Values.mysql.pv.basePath }}/mysql-0
 ---
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: local-pv-1
+  name: {{ .Values.mysql.pv.namePrefix }}-1
 spec:
   capacity:
-    storage: 2Gi
+    storage: {{ .Values.mysql.persistence.size }}
   accessModes:
   - ReadWriteOnce
-  storageClassName: standard
+  storageClassName: {{ .Values.storageClass.name }}
   hostPath:
-    path: /mnt/data/mysql-1
+    path: {{ .Values.mysql.pv.basePath }}/mysql-1
 ---
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: local-pv-2
+  name: {{ .Values.mysql.pv.namePrefix }}-2
 spec:
   capacity:
-    storage: 2Gi
+    storage: {{ .Values.mysql.persistence.size }}
   accessModes:
   - ReadWriteOnce
-  storageClassName: standard
+  storageClassName: {{ .Values.storageClass.name }}
   hostPath:
-    path: /mnt/data/mysql-2
+    path: {{ .Values.mysql.pv.basePath }}/mysql-2

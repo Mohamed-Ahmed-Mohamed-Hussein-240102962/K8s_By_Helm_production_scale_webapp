@@ -1,20 +1,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: nginx-frontend
-  namespace: production
+  name: {{ .Values.frontend.name }}
 spec:
-  replicas: 3
+  replicas: {{ .Values.frontend.replicaCount }}
   selector:
     matchLabels:
-      app: nginx-frontend
+      app: {{ .Values.frontend.name }}
   template:
     metadata:
       labels:
-        app: nginx-frontend
+        app: {{ .Values.frontend.name }}
     spec:
       imagePullSecrets:
-      - name: regcred
+      - name: {{ .Values.imagePullSecret.name }}
+      
       tolerations:
       - key: "node-role.kubernetes.io/control-plane"
         operator: "Exists"
@@ -22,16 +22,17 @@ spec:
         
       initContainers:
       - name: copy-assets
-        image: moopsdev/my-laravel-app:latest
+        image: {{ .Values.backend.image }}
         command: ["sh", "-c", "cp -r /var/www/html/public/* /shared-public/"]
         volumeMounts:
         - name: shared-public
           mountPath: /shared-public
+
       containers:
       - name: nginx
-        image: nginx:alpine
+        image: {{ .Values.frontend.image }}
         ports:
-        - containerPort: 80
+        - containerPort: {{ .Values.frontend.containerPort }}
           name: http
         volumeMounts:
         - name: shared-public
@@ -41,14 +42,15 @@ spec:
           subPath: default.conf
         resources:
           requests:
-            cpu: "100m"
-            memory: "128Mi"
+            cpu: {{ .Values.frontend.resources.requests.cpu }}
+            memory: {{ .Values.frontend.resources.requests.memory }}
           limits:
-            cpu: "250m"
-            memory: "256Mi"
+            cpu: {{ .Values.frontend.resources.limits.cpu }}
+            memory: {{ .Values.frontend.resources.limits.memory }}
+
       volumes:
       - name: shared-public
         emptyDir: {}
       - name: nginx-config-volume
         configMap:
-          name: nginx-config
+          name: {{ .Values.configmaps.nginxConfigName }}

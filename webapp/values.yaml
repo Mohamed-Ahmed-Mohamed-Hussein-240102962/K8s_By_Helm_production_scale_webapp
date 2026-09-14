@@ -2,6 +2,30 @@ imagePullSecret:
   name: regcred
   dockerconfigjson: eyJhdXRocyI6eyJodHRwczovL2luZGV4LmRvY2tlci5pby92MS8iOnsidXNlcm5hbWUiOiJtb29wc2RldiIsInBhc3N3b3JkIjoibWVnb2hqOTg3MjAiLCJhdXRoIjoiYlc5dmNITmtaWFk2YldWbmIyaHFPVGczTWpBPSJ9fX0=
 
+backend:
+  name: laravel-backend
+  replicaCount: 4
+  image: "moopsdev/my-laravel-app:latest"
+  containerPort: 9000
+  resources:
+    requests:
+      cpu: "250m"
+      memory: "256Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+backendService:
+  name: laravel-backend-service
+  type:  ClusterIP
+  port: 80
+  targetPort: 9000
+
+backendhpa:
+  name: laravel-backend-hpa
+  minReplicas: 2
+  maxReplicas: 6 
+  averageUtilization: 70
+
 
 mysqlSecret:
   name: mysql-secrets
@@ -9,7 +33,6 @@ mysqlSecret:
   user: bGFyYXZlbA==
   password: c2VjcmV0
   appKey: YmFzZTY0OnFOL1hYWm1yVXRZamRDTWdrZzl3bjZjTGJzWXcwUzFxMytnU2g4SmNoWnM9
-
 
 configmaps:
   appConfigName: app-config
@@ -30,8 +53,46 @@ nginx:
   serverName: "laravel.lib"
   backendService: "laravel-backend-service"
 
-
 rbac:
   serviceAccountName: laravel-sa
   roleName: laravel-role
   roleBindingName: laravel-rolebinding
+
+storageClass:
+  name: local-storage
+  provisioner: rancher.io/local-path
+  reclaimPolicy: Retain
+  volumeBindingMode: WaitForFirstConsumer 
+
+mysqlHeadless:
+  name: mysql-headless
+  labelApp: mysql
+  port: 3306
+  targetPort: 3306
+  portName: mysql
+
+mysql:
+  name: mysql
+  replicaCount: 1
+  image:
+    repository: mysql
+    tag: "8.0"
+  persistence:
+    size: 2Gi
+  pv:
+    namePrefix: local-pv
+    basePath: /mnt/data
+
+
+frontend:
+  name: nginx-frontend
+  replicaCount: 3
+  image: "nginx:alpine"
+  containerPort: 80
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "250m"
+      memory: "256Mi"

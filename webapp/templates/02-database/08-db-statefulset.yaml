@@ -1,11 +1,10 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: mysql
-  namespace: production
+  name: {{ .Values.mysql.name }}
 spec:
-  serviceName: "mysql-headless"
-  replicas: 1
+  serviceName: "{{ .Values.mysqlHeadless.name }}"
+  replicas: {{ .Values.mysql.replicaCount }}
   selector:
     matchLabels:
       app: mysql
@@ -16,7 +15,7 @@ spec:
     spec:
       initContainers:
       - name: init-mysql-config
-        image: mysql:8.0
+        image: "{{ .Values.mysql.image.repository }}:{{ .Values.mysql.image.tag }}"
         command: ["bash", "/scripts/init-config.sh"]
         volumeMounts:
         - name: scripts-volume
@@ -26,15 +25,15 @@ spec:
 
       containers:
       - name: mysql
-        image: mysql:8.0
+        image: "{{ .Values.mysql.image.repository }}:{{ .Values.mysql.image.tag }}"
         envFrom:
         - secretRef:
-            name: mysql-secrets
+            name: {{ .Values.mysqlSecret.name }}
         env:
         - name: MYSQL_DATABASE
-          value: "laravel"
+          value: "{{ .Values.database.name }}"
         ports:
-        - containerPort: 3306
+        - containerPort: {{ .Values.mysqlHeadless.port }}
           name: mysql
         volumeMounts:
         - name: data
@@ -57,7 +56,7 @@ spec:
       name: data
     spec:
       accessModes: [ "ReadWriteOnce" ]
-      storageClassName: "standard"
+      storageClassName: "{{ .Values.storageClass.name }}"
       resources:
         requests:
-          storage: 2Gi
+          storage: {{ .Values.mysql.persistence.size }}
